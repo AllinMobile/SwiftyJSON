@@ -1,4 +1,8 @@
 #SwiftyJSON
+
+## Changes in this Fork
+Nows when you try to parse some kind of number it will try to parse it
+also from string
  
 [![Travis CI](https://travis-ci.org/SwiftyJSON/SwiftyJSON.svg?branch=master)](https://travis-ci.org/SwiftyJSON/SwiftyJSON)
 
