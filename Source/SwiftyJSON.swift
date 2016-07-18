@@ -41,7 +41,7 @@ JSON's type definitions.
 
 See http://www.json.org
 */
-public enum Type :Int{
+public enum Type: Int {
 
     case Number
     case String
@@ -65,7 +65,7 @@ public struct JSON {
 
     - returns: The created JSON
     */
-    public init(data:NSData, options opt: NSJSONReadingOptions = .AllowFragments, error: NSErrorPointer = nil) {
+    public init(data: NSData, options opt: NSJSONReadingOptions = .AllowFragments, error: NSErrorPointer = nil) {
         do {
             let object: AnyObject = try NSJSONSerialization.JSONObjectWithData(data, options: opt)
             self.init(object)
@@ -83,7 +83,7 @@ public struct JSON {
 
     - returns: The created JSON
     */
-    public static func parse(string:String) -> JSON {
+    public static func parse(string: String) -> JSON {
         return string.dataUsingEncoding(NSUTF8StringEncoding)
             .flatMap({JSON(data: $0)}) ?? JSON(NSNull())
     }
@@ -106,7 +106,7 @@ public struct JSON {
 
     - returns: The created JSON
     */
-    public init(_ jsonArray:[JSON]) {
+    public init(_ jsonArray: [JSON]) {
         self.init(jsonArray.map { $0.object })
     }
 
@@ -117,7 +117,7 @@ public struct JSON {
 
     - returns: The created JSON
     */
-    public init(_ jsonDictionary:[String: JSON]) {
+    public init(_ jsonDictionary: [String: JSON]) {
         var dictionary = [String: AnyObject](minimumCapacity: jsonDictionary.count)
         for (key, json) in jsonDictionary {
             dictionary[key] = json.object
@@ -289,7 +289,7 @@ public struct JSONIndex: ForwardIndexType, _Incrementable, Equatable, Comparable
 
     let type: Type
 
-    init(){
+    init() {
         self.arrayIndex = nil
         self.dictionaryIndex = nil
         self.type = .Unknown
@@ -374,7 +374,7 @@ public func >(lhs: JSONIndex, rhs: JSONIndex) -> Bool {
     }
 }
 
-public struct JSONGenerator : GeneratorType {
+public struct JSONGenerator: GeneratorType {
 
     public typealias Element = (String, JSON)
 
@@ -387,7 +387,7 @@ public struct JSONGenerator : GeneratorType {
         self.type = json.type
         if type == .Array {
             self.arrayGenerate = json.rawArray.generate()
-        }else {
+        } else {
             self.dictionayGenerate = json.rawDictionary.generate()
         }
     }
@@ -425,17 +425,17 @@ public enum JSONKey {
 }
 
 public protocol JSONSubscriptType {
-    var jsonKey:JSONKey { get }
+    var jsonKey: JSONKey { get }
 }
 
 extension Int: JSONSubscriptType {
-    public var jsonKey:JSONKey {
+    public var jsonKey: JSONKey {
         return JSONKey.Index(self)
     }
 }
 
 extension String: JSONSubscriptType {
-    public var jsonKey:JSONKey {
+    public var jsonKey: JSONKey {
         return JSONKey.Key(self)
     }
 }
@@ -453,7 +453,7 @@ extension JSON {
                 return JSON(self.rawArray[index])
             } else {
                 var r = JSON.null
-                r._error = NSError(domain: ErrorDomain, code:ErrorIndexOutOfBounds , userInfo: [NSLocalizedDescriptionKey: "Array[\(index)] is out of bounds"])
+                r._error = NSError(domain: ErrorDomain, code:ErrorIndexOutOfBounds, userInfo: [NSLocalizedDescriptionKey: "Array[\(index)] is out of bounds"])
                 return r
             }
         }
@@ -598,7 +598,7 @@ extension JSON: Swift.FloatLiteralConvertible {
 extension JSON: Swift.DictionaryLiteralConvertible {
 
     public init(dictionaryLiteral elements: (String, AnyObject)...) {
-        self.init(elements.reduce([String : AnyObject](minimumCapacity: elements.count)){(dictionary: [String : AnyObject], element:(String, AnyObject)) -> [String : AnyObject] in
+        self.init(elements.reduce([String : AnyObject](minimumCapacity: elements.count)) {(dictionary: [String : AnyObject], element: (String, AnyObject)) -> [String : AnyObject] in
             var d = dictionary
             d[element.0] = element.1
             return d
@@ -692,7 +692,7 @@ extension JSON {
     public var array: [JSON]? {
         get {
             if self.type == .Array {
-                return self.rawArray.map{ JSON($0) }
+                return self.rawArray.map { JSON($0) }
             } else {
                 return nil
             }
@@ -859,6 +859,12 @@ extension JSON {
             switch self.type {
             case .Number, .Bool:
                 return self.rawNumber
+            case .String:
+                let decimal = NSDecimalNumber(string: self.object as? String)
+                if decimal == NSDecimalNumber.notANumber() {
+                    return nil
+                }
+                return decimal
             default:
                 return nil
             }
@@ -873,8 +879,7 @@ extension JSON {
         get {
             switch self.type {
             case .String:
-                let decimal = NSDecimalNumber(string: self.object as? String)
-                if decimal == NSDecimalNumber.notANumber() {  // indicates parse error
+                guard let decimal = self.number else {
                     return NSDecimalNumber.zero()
                 }
                 return decimal
@@ -906,8 +911,8 @@ extension JSON {
             self.object = NSNull()
         }
     }
-    public func exists() -> Bool{
-        if let errorValue = error where errorValue.code == ErrorNotExist{
+    public func exists() -> Bool {
+        if let errorValue = error where errorValue.code == ErrorNotExist {
             return false
         }
         return true
@@ -1301,11 +1306,11 @@ private let falseObjCType = String.fromCString(falseNumber.objCType)
 // MARK: - NSNumber: Comparable
 
 extension NSNumber {
-    var isBool:Bool {
+    var isBool: Bool {
         get {
             let objCType = String.fromCString(self.objCType)
             if (self.compare(trueNumber) == NSComparisonResult.OrderedSame && objCType == trueObjCType)
-                || (self.compare(falseNumber) == NSComparisonResult.OrderedSame && objCType == falseObjCType){
+                || (self.compare(falseNumber) == NSComparisonResult.OrderedSame && objCType == falseObjCType) {
                     return true
             } else {
                 return false
